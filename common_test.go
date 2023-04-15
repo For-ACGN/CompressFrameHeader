@@ -371,3 +371,90 @@ func TestIsFrameHeaderPreferBeCompressed_Fuzz(t *testing.T) {
 		}
 	}
 }
+
+func BenchmarkIsFrameHeaderPreferBeCompressed(b *testing.B) {
+	b.Run("Ethernet IPv4 TCP", benchmarkIsFrameHeaderPreferBeCompressedEthernetIPv4TCP)
+	b.Run("Ethernet IPv4 UDP", benchmarkIsFrameHeaderPreferBeCompressedEthernetIPv4UDP)
+	b.Run("Ethernet IPv6 TCP", benchmarkIsFrameHeaderPreferBeCompressedEthernetIPv6TCP)
+	b.Run("Ethernet IPv6 UDP", benchmarkIsFrameHeaderPreferBeCompressedEthernetIPv6UDP)
+}
+
+func benchmarkIsFrameHeaderPreferBeCompressedEthernetIPv4TCP(b *testing.B) {
+	header := make([]byte, len(testIPv4TCPFrameHeader1)+16)
+	copy(header, testIPv4TCPFrameHeader1)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		size, prefer := isFrameHeaderPreferBeCompressed(header)
+		if !prefer {
+			b.Fatal("not prefer")
+		}
+		if size != ethernetIPv4TCPSize {
+			b.Fatal("invalid size")
+		}
+	}
+
+	b.StopTimer()
+}
+
+func benchmarkIsFrameHeaderPreferBeCompressedEthernetIPv4UDP(b *testing.B) {
+	header := make([]byte, len(testIPv4UDPFrameHeader1)+16)
+	copy(header, testIPv4UDPFrameHeader1)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		size, prefer := isFrameHeaderPreferBeCompressed(header)
+		if !prefer {
+			b.Fatal("not prefer")
+		}
+		if size != ethernetIPv4UDPSize {
+			b.Fatal("invalid size")
+		}
+	}
+
+	b.StopTimer()
+}
+
+func benchmarkIsFrameHeaderPreferBeCompressedEthernetIPv6TCP(b *testing.B) {
+	header := make([]byte, len(testIPv6TCPFrameHeader1)+16)
+	copy(header, testIPv6TCPFrameHeader1)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		size, prefer := isFrameHeaderPreferBeCompressed(header)
+		if !prefer {
+			b.Fatal("not prefer")
+		}
+		if size != ethernetIPv6TCPSize {
+			b.Fatal("invalid size")
+		}
+	}
+
+	b.StopTimer()
+}
+
+func benchmarkIsFrameHeaderPreferBeCompressedEthernetIPv6UDP(b *testing.B) {
+	header := make([]byte, len(testIPv6UDPFrameHeader1)+16)
+	copy(header, testIPv6UDPFrameHeader1)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		size, prefer := isFrameHeaderPreferBeCompressed(header)
+		if !prefer {
+			b.Fatal("not prefer")
+		}
+		if size != ethernetIPv6UDPSize {
+			b.Fatal("invalid size")
+		}
+	}
+
+	b.StopTimer()
+}
