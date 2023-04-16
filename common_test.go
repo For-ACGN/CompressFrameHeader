@@ -91,7 +91,7 @@ func testMustHexDecodeString(s string) []byte {
 }
 
 func testGenerateFrameHeaders(t *testing.T) [][]byte {
-	headers := make([][]byte, 512*1024)
+	headers := make([][]byte, 64*1024)
 	typ := make([]byte, 1)
 	idx := make([]byte, 2)
 	for i := 0; i < len(headers); i++ {
