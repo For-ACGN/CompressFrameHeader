@@ -278,3 +278,342 @@ func TestWriter_searchDictionary(t *testing.T) {
 		}
 	})
 }
+
+func TestWriter_Fuzz(t *testing.T) {
+	output := bytes.NewBuffer(make([]byte, 0, 4*1024*1024))
+	headers := testGenerateFrameHeaders(t)
+
+	w := NewWriter(output)
+	for _, header := range headers {
+		n, err := w.Write(header)
+		require.NoError(t, err)
+		require.Equal(t, len(header), n)
+	}
+
+	r := NewReader(output)
+	for _, header := range headers {
+		buf := make([]byte, len(header))
+		n, err := r.Read(buf)
+		require.NoError(t, err)
+		require.Equal(t, len(header), n)
+		require.Equal(t, header, buf)
+	}
+}
+
+func BenchmarkWriter_Write(b *testing.B) {
+	b.Run("Ethernet IPv4 TCP", benchmarkWriterWriteEthernetIPv4TCP)
+	b.Run("Ethernet IPv4 UDP", benchmarkWriterWriteEthernetIPv4UDP)
+	b.Run("Ethernet IPv6 TCP", benchmarkWriterWriteEthernetIPv6TCP)
+	b.Run("Ethernet IPv6 UDP", benchmarkWriterWriteEthernetIPv6UDP)
+	b.Run("Custom Frame Header", benchmarkWriterWriteCustomFrameHeader)
+}
+
+func benchmarkWriterWriteEthernetIPv4TCP(b *testing.B) {
+	b.Run("single dictionary", func(b *testing.B) {
+		output := bytes.NewBuffer(make([]byte, 0, 64*1024*1024))
+		w := NewWriter(output)
+
+		header := make([]byte, len(testIPv4TCPFrameHeader1))
+		copy(header, testIPv4TCPFrameHeader1)
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		var err error
+		for i := 0; i < b.N; i++ {
+			_, err = w.Write(header)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			// data that change frequently
+			header[17] = byte(i) + 1 // IPv4 Total Length [byte 2]
+			header[19] = byte(i) + 2 // IPv4 ID [byte 2]
+			header[25] = byte(i) + 3 // IPv4 checksum [byte 2]
+
+			header[41] = byte(i) + 4 // TCP Sequence [byte 4]
+			header[45] = byte(i) + 5 // TCP acknowledgment [byte 4]
+			header[50] = byte(i) + 6 // TCP checksum [byte 1]
+			header[51] = byte(i) + 7 // TCP checksum [byte 2]
+		}
+
+		b.StopTimer()
+	})
+
+	b.Run("multi dictionaries", func(b *testing.B) {
+		output := bytes.NewBuffer(make([]byte, 0, 64*1024*1024))
+		w := NewWriter(output)
+
+		header := make([]byte, len(testIPv4TCPFrameHeader1))
+		copy(header, testIPv4TCPFrameHeader1)
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		var err error
+		for i := 0; i < b.N; i++ {
+			_, err = w.Write(header)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			// data that change frequently
+			header[17] = byte(i) + 1 // IPv4 Total Length [byte 2]
+			header[19] = byte(i) + 2 // IPv4 ID [byte 2]
+			header[25] = byte(i) + 3 // IPv4 checksum [byte 2]
+
+			header[41] = byte(i) + 4 // TCP Sequence [byte 4]
+			header[45] = byte(i) + 5 // TCP acknowledgment [byte 4]
+			header[50] = byte(i) + 6 // TCP checksum [byte 1]
+			header[51] = byte(i) + 7 // TCP checksum [byte 2]
+
+			// change destination port for create more dictionaries
+			header[34] = byte(i) + 8
+		}
+
+		b.StopTimer()
+	})
+}
+
+func benchmarkWriterWriteEthernetIPv4UDP(b *testing.B) {
+	b.Run("single dictionary", func(b *testing.B) {
+		output := bytes.NewBuffer(make([]byte, 0, 64*1024*1024))
+		w := NewWriter(output)
+
+		header := make([]byte, len(testIPv4UDPFrameHeader1))
+		copy(header, testIPv4UDPFrameHeader1)
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		var err error
+		for i := 0; i < b.N; i++ {
+			_, err = w.Write(header)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			// data that change frequently
+			header[17] = byte(i) + 1 // IPv4 Total Length [byte 2]
+			header[19] = byte(i) + 2 // IPv4 ID [byte 2]
+			header[25] = byte(i) + 3 // IPv4 checksum [byte 2]
+
+			header[39] = byte(i) + 4 // UDP length [byte 4]
+			header[40] = byte(i) + 5 // UDP checksum [byte 1]
+			header[41] = byte(i) + 6 // UDP checksum [byte 2]
+		}
+
+		b.StopTimer()
+	})
+
+	b.Run("multi dictionaries", func(b *testing.B) {
+		output := bytes.NewBuffer(make([]byte, 0, 64*1024*1024))
+		w := NewWriter(output)
+
+		header := make([]byte, len(testIPv4UDPFrameHeader1))
+		copy(header, testIPv4UDPFrameHeader1)
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		var err error
+		for i := 0; i < b.N; i++ {
+			_, err = w.Write(header)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			// data that change frequently
+			header[17] = byte(i) + 1 // IPv4 Total Length [byte 2]
+			header[19] = byte(i) + 2 // IPv4 ID [byte 2]
+			header[25] = byte(i) + 3 // IPv4 checksum [byte 2]
+
+			header[39] = byte(i) + 4 // UDP length [byte 4]
+			header[40] = byte(i) + 5 // UDP checksum [byte 1]
+			header[41] = byte(i) + 6 // UDP checksum [byte 2]
+
+			// change destination port for create more dictionaries
+			header[34] = byte(i) + 7
+		}
+
+		b.StopTimer()
+	})
+}
+
+func benchmarkWriterWriteEthernetIPv6TCP(b *testing.B) {
+	b.Run("single dictionary", func(b *testing.B) {
+		output := bytes.NewBuffer(make([]byte, 0, 64*1024*1024))
+		w := NewWriter(output)
+
+		header := make([]byte, len(testIPv6TCPFrameHeader1))
+		copy(header, testIPv6TCPFrameHeader1)
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		var err error
+		for i := 0; i < b.N; i++ {
+			_, err = w.Write(header)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			// data that change frequently
+			header[19] = byte(i) + 1 // IPv6 payload length [byte 2]
+
+			header[61] = byte(i) + 2 // TCP Sequence [byte 4]
+			header[65] = byte(i) + 3 // TCP acknowledgment [byte 4]
+			header[70] = byte(i) + 4 // TCP checksum [byte 1]
+			header[71] = byte(i) + 5 // TCP checksum [byte 2]
+		}
+
+		b.StopTimer()
+	})
+
+	b.Run("multi dictionaries", func(b *testing.B) {
+		output := bytes.NewBuffer(make([]byte, 0, 64*1024*1024))
+		w := NewWriter(output)
+
+		header := make([]byte, len(testIPv6TCPFrameHeader1))
+		copy(header, testIPv6TCPFrameHeader1)
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		var err error
+		for i := 0; i < b.N; i++ {
+			_, err = w.Write(header)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			// data that change frequently
+			header[19] = byte(i) + 1 // IPv6 payload length [byte 2]
+
+			header[61] = byte(i) + 2 // TCP Sequence [byte 4]
+			header[65] = byte(i) + 3 // TCP acknowledgment [byte 4]
+			header[70] = byte(i) + 4 // TCP checksum [byte 1]
+			header[71] = byte(i) + 5 // TCP checksum [byte 2]
+
+			// change destination port for create more dictionaries
+			header[54] = byte(i) + 6
+		}
+
+		b.StopTimer()
+	})
+}
+
+func benchmarkWriterWriteEthernetIPv6UDP(b *testing.B) {
+	b.Run("single dictionary", func(b *testing.B) {
+		output := bytes.NewBuffer(make([]byte, 0, 64*1024*1024))
+		w := NewWriter(output)
+
+		header := make([]byte, len(testIPv6UDPFrameHeader1))
+		copy(header, testIPv6UDPFrameHeader1)
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		var err error
+		for i := 0; i < b.N; i++ {
+			_, err = w.Write(header)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			// data that change frequently
+			header[19] = byte(i) + 1 // IPv6 payload length [byte 2]
+
+			header[59] = byte(i) + 2 // UDP length [byte 4]
+			header[60] = byte(i) + 3 // UDP checksum [byte 1]
+			header[61] = byte(i) + 4 // UDP checksum [byte 2]
+		}
+
+		b.StopTimer()
+	})
+
+	b.Run("multi dictionaries", func(b *testing.B) {
+		output := bytes.NewBuffer(make([]byte, 0, 64*1024*1024))
+		w := NewWriter(output)
+
+		header := make([]byte, len(testIPv6UDPFrameHeader1))
+		copy(header, testIPv6UDPFrameHeader1)
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		var err error
+		for i := 0; i < b.N; i++ {
+			_, err = w.Write(header)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			// data that change frequently
+			header[19] = byte(i) + 1 // IPv6 payload length [byte 2]
+
+			header[59] = byte(i) + 2 // UDP length [byte 4]
+			header[60] = byte(i) + 3 // UDP checksum [byte 1]
+			header[61] = byte(i) + 4 // UDP checksum [byte 2]
+
+			// change destination port for create more dictionaries
+			header[54] = byte(i) + 5
+		}
+
+		b.StopTimer()
+	})
+}
+
+func benchmarkWriterWriteCustomFrameHeader(b *testing.B) {
+	b.Run("single dictionary", func(b *testing.B) {
+		output := bytes.NewBuffer(make([]byte, 0, 64*1024*1024))
+		w := NewWriter(output)
+
+		header := make([]byte, 64)
+		copy(header, testIPv4TCPFrameHeader1)
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		var err error
+		for i := 0; i < b.N; i++ {
+			_, err = w.Write(header)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			// change a little
+			for j := 0; j < len(header)/minDiffDiv-2; j++ {
+				header[j] = byte(i) + 1
+			}
+		}
+
+		b.StopTimer()
+	})
+
+	b.Run("multi dictionaries", func(b *testing.B) {
+		output := bytes.NewBuffer(make([]byte, 0, 64*1024*1024))
+		w := NewWriter(output)
+
+		header := make([]byte, 64)
+		copy(header, testIPv4TCPFrameHeader1)
+
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		var err error
+		for i := 0; i < b.N; i++ {
+			_, err = w.Write(header)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			// change a lot
+			for j := 0; j < len(header)/maxDiffDiv+2; j++ {
+				header[j] = byte(i) + 1
+			}
+		}
+
+		b.StopTimer()
+	})
+}
