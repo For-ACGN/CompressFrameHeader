@@ -26,12 +26,12 @@ const (
 	maxDiffDiv = 4
 )
 
-// isFrameHeaderPreferBeCompressed is used to check
+// IsFrameHeaderPreferBeCompressed is used to check
 // frame header can be compressed by fast mode.
-// If frame header is preferred be compressed, it
-// will return the header size that be compressed.
+// If frame header is preferred be compressed, it will
+// return the header size that be compressed.
 // It supports IPv4/IPv6 with TCP/UDP
-func isFrameHeaderPreferBeCompressed(frame []byte) (int, bool) {
+func IsFrameHeaderPreferBeCompressed(frame []byte) (int, bool) {
 	if len(frame) < ethernetIPv4UDPSize {
 		return 0, false
 	}

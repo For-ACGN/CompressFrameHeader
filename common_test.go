@@ -191,7 +191,7 @@ func TestIsFrameHeaderPreferBeCompressed(t *testing.T) {
 			testIPv4TCPFrameHeader7,
 			testIPv4TCPFrameHeader8,
 		} {
-			size, prefer := isFrameHeaderPreferBeCompressed(header)
+			size, prefer := IsFrameHeaderPreferBeCompressed(header)
 			require.True(t, prefer)
 			require.Equal(t, ethernetIPv4TCPSize, size)
 		}
@@ -208,7 +208,7 @@ func TestIsFrameHeaderPreferBeCompressed(t *testing.T) {
 			testIPv4UDPFrameHeader7,
 			testIPv4UDPFrameHeader8,
 		} {
-			size, prefer := isFrameHeaderPreferBeCompressed(header)
+			size, prefer := IsFrameHeaderPreferBeCompressed(header)
 			require.True(t, prefer)
 			require.Equal(t, ethernetIPv4UDPSize, size)
 		}
@@ -225,7 +225,7 @@ func TestIsFrameHeaderPreferBeCompressed(t *testing.T) {
 			testIPv6TCPFrameHeader7,
 			testIPv6TCPFrameHeader8,
 		} {
-			size, prefer := isFrameHeaderPreferBeCompressed(header)
+			size, prefer := IsFrameHeaderPreferBeCompressed(header)
 			require.True(t, prefer)
 			require.Equal(t, ethernetIPv6TCPSize, size)
 		}
@@ -242,14 +242,14 @@ func TestIsFrameHeaderPreferBeCompressed(t *testing.T) {
 			testIPv6UDPFrameHeader7,
 			testIPv6UDPFrameHeader8,
 		} {
-			size, prefer := isFrameHeaderPreferBeCompressed(header)
+			size, prefer := IsFrameHeaderPreferBeCompressed(header)
 			require.True(t, prefer)
 			require.Equal(t, ethernetIPv6UDPSize, size)
 		}
 	})
 
 	t.Run("too small frame", func(t *testing.T) {
-		size, prefer := isFrameHeaderPreferBeCompressed([]byte{})
+		size, prefer := IsFrameHeaderPreferBeCompressed([]byte{})
 		require.False(t, prefer)
 		require.Zero(t, size)
 	})
@@ -260,7 +260,7 @@ func TestIsFrameHeaderPreferBeCompressed(t *testing.T) {
 		header[12] = 0xFF // next layer type
 		header[13] = 0xFF // next layer type
 
-		size, prefer := isFrameHeaderPreferBeCompressed(header)
+		size, prefer := IsFrameHeaderPreferBeCompressed(header)
 		require.False(t, prefer)
 		require.Zero(t, size)
 	})
@@ -271,7 +271,7 @@ func TestIsFrameHeaderPreferBeCompressed(t *testing.T) {
 			copy(header, testIPv4TCPFrameHeader1)
 			header[14] = 0x46 // header length is not 20
 
-			size, prefer := isFrameHeaderPreferBeCompressed(header)
+			size, prefer := IsFrameHeaderPreferBeCompressed(header)
 			require.False(t, prefer)
 			require.Zero(t, size)
 		})
@@ -281,7 +281,7 @@ func TestIsFrameHeaderPreferBeCompressed(t *testing.T) {
 			copy(header, testIPv4TCPFrameHeader1)
 			header[23] = 0xFF
 
-			size, prefer := isFrameHeaderPreferBeCompressed(header)
+			size, prefer := IsFrameHeaderPreferBeCompressed(header)
 			require.False(t, prefer)
 			require.Zero(t, size)
 		})
@@ -291,7 +291,7 @@ func TestIsFrameHeaderPreferBeCompressed(t *testing.T) {
 				header := make([]byte, len(testIPv4TCPFrameHeader1)-1)
 				copy(header, testIPv4TCPFrameHeader1)
 
-				size, prefer := isFrameHeaderPreferBeCompressed(header)
+				size, prefer := IsFrameHeaderPreferBeCompressed(header)
 				require.False(t, prefer)
 				require.Zero(t, size)
 			})
@@ -301,7 +301,7 @@ func TestIsFrameHeaderPreferBeCompressed(t *testing.T) {
 				copy(header, testIPv4TCPFrameHeader1)
 				header[46] = 0xFF
 
-				size, prefer := isFrameHeaderPreferBeCompressed(header)
+				size, prefer := IsFrameHeaderPreferBeCompressed(header)
 				require.False(t, prefer)
 				require.Zero(t, size)
 			})
@@ -314,7 +314,7 @@ func TestIsFrameHeaderPreferBeCompressed(t *testing.T) {
 			copy(header, testIPv6TCPFrameHeader1)
 			header[20] = 0xFF
 
-			size, prefer := isFrameHeaderPreferBeCompressed(header)
+			size, prefer := IsFrameHeaderPreferBeCompressed(header)
 			require.False(t, prefer)
 			require.Zero(t, size)
 		})
@@ -324,7 +324,7 @@ func TestIsFrameHeaderPreferBeCompressed(t *testing.T) {
 				header := make([]byte, len(testIPv6TCPFrameHeader1)-1)
 				copy(header, testIPv6TCPFrameHeader1)
 
-				size, prefer := isFrameHeaderPreferBeCompressed(header)
+				size, prefer := IsFrameHeaderPreferBeCompressed(header)
 				require.False(t, prefer)
 				require.Zero(t, size)
 			})
@@ -334,7 +334,7 @@ func TestIsFrameHeaderPreferBeCompressed(t *testing.T) {
 				copy(header, testIPv6TCPFrameHeader1)
 				header[66] = 0xFF
 
-				size, prefer := isFrameHeaderPreferBeCompressed(header)
+				size, prefer := IsFrameHeaderPreferBeCompressed(header)
 				require.False(t, prefer)
 				require.Zero(t, size)
 			})
@@ -345,7 +345,7 @@ func TestIsFrameHeaderPreferBeCompressed(t *testing.T) {
 				header := make([]byte, len(testIPv6UDPFrameHeader1)-1)
 				copy(header, testIPv6UDPFrameHeader1)
 
-				size, prefer := isFrameHeaderPreferBeCompressed(header)
+				size, prefer := IsFrameHeaderPreferBeCompressed(header)
 				require.False(t, prefer)
 				require.Zero(t, size)
 			})
@@ -357,7 +357,7 @@ func TestIsFrameHeaderPreferBeCompressed_Fuzz(t *testing.T) {
 	headers := testGenerateFrameHeaders(t)
 	for _, header := range headers {
 		f := append(header, 0)
-		size, prefer := isFrameHeaderPreferBeCompressed(f)
+		size, prefer := IsFrameHeaderPreferBeCompressed(f)
 		if !prefer {
 			continue
 		}
@@ -387,7 +387,7 @@ func benchmarkIsFrameHeaderPreferBeCompressedEthernetIPv4TCP(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		size, prefer := isFrameHeaderPreferBeCompressed(header)
+		size, prefer := IsFrameHeaderPreferBeCompressed(header)
 		if !prefer {
 			b.Fatal("not prefer")
 		}
@@ -407,7 +407,7 @@ func benchmarkIsFrameHeaderPreferBeCompressedEthernetIPv4UDP(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		size, prefer := isFrameHeaderPreferBeCompressed(header)
+		size, prefer := IsFrameHeaderPreferBeCompressed(header)
 		if !prefer {
 			b.Fatal("not prefer")
 		}
@@ -427,7 +427,7 @@ func benchmarkIsFrameHeaderPreferBeCompressedEthernetIPv6TCP(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		size, prefer := isFrameHeaderPreferBeCompressed(header)
+		size, prefer := IsFrameHeaderPreferBeCompressed(header)
 		if !prefer {
 			b.Fatal("not prefer")
 		}
@@ -447,7 +447,7 @@ func benchmarkIsFrameHeaderPreferBeCompressedEthernetIPv6UDP(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		size, prefer := isFrameHeaderPreferBeCompressed(header)
+		size, prefer := IsFrameHeaderPreferBeCompressed(header)
 		if !prefer {
 			b.Fatal("not prefer")
 		}
