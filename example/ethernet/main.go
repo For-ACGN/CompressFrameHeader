@@ -23,11 +23,12 @@ func main() {
 		log.Fatal("invalid ethernet frame")
 	}
 	// compress frame header
-	buf := bytes.NewBuffer(make([]byte, 0, 256))
+	buf := bytes.NewBuffer(nil)
+	buf.Grow(cfh.MaxFrameHeaderSize)
 	w := cfh.NewWriter(buf)
 	n, err := w.Write(ethIPv4TCP[:size])
 	checkError(err)
-	if n != len(ethIPv4TCP[:size]) {
+	if n != size {
 		log.Fatal("invalid n")
 	}
 
