@@ -205,7 +205,7 @@ func TestReader_Read(t *testing.T) {
 			output.WriteByte(0) // dictionary index
 
 			r := NewReader(output)
-			r.(*Reader).dict[0] = []byte{1, 2, 3, 4}
+			r.dict[0] = []byte{1, 2, 3, 4}
 
 			buf := make([]byte, 256)
 			n, err := r.Read(buf)
@@ -220,7 +220,7 @@ func TestReader_Read(t *testing.T) {
 			output.WriteByte(5) // the number of changed data
 
 			r := NewReader(output)
-			r.(*Reader).dict[0] = []byte{1, 2, 3, 4}
+			r.dict[0] = []byte{1, 2, 3, 4}
 
 			buf := make([]byte, 256)
 			n, err := r.Read(buf)
@@ -235,7 +235,7 @@ func TestReader_Read(t *testing.T) {
 			output.WriteByte(2) // the number of changed data
 
 			r := NewReader(output)
-			r.(*Reader).dict[0] = []byte{1, 2, 3, 4}
+			r.dict[0] = []byte{1, 2, 3, 4}
 
 			buf := make([]byte, 256)
 			n, err := r.Read(buf)
@@ -252,7 +252,7 @@ func TestReader_Read(t *testing.T) {
 			output.WriteByte(123) // changed data
 
 			r := NewReader(output)
-			r.(*Reader).dict[0] = []byte{1, 2, 3, 4}
+			r.dict[0] = []byte{1, 2, 3, 4}
 
 			buf := make([]byte, 256)
 			n, err := r.Read(buf)

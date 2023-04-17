@@ -8,7 +8,8 @@ import (
 )
 
 // Searcher is used to fast search dictionaries for custom frame header.
-// dict is the Writer inner saved dictionaries.
+// Dict is the Writer inner saved dictionaries.
+// If cannot to search the target dictionary, return the index -1.
 type Searcher = func(dict [][]byte, header []byte) (index int)
 
 // Writer is used to compress frame header data.
@@ -23,16 +24,16 @@ type Writer struct {
 }
 
 // NewWriter is used to create a new compressor with 256 dictionaries.
-func NewWriter(w io.Writer) io.Writer {
-	w, err := NewWriterWithSize(w, 256)
+func NewWriter(w io.Writer) *Writer {
+	writer, err := NewWriterWithSize(w, 256)
 	if err != nil {
 		panic(err)
 	}
-	return w
+	return writer
 }
 
 // NewWriterWithSize is used to create a new compressor with custom number of dictionaries.
-func NewWriterWithSize(w io.Writer, size int) (io.Writer, error) {
+func NewWriterWithSize(w io.Writer, size int) (*Writer, error) {
 	if size < 1 {
 		return nil, errors.New("dictionary size cannot less than 1")
 	}

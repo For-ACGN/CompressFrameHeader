@@ -20,16 +20,16 @@ type Reader struct {
 }
 
 // NewReader is used to create a new compressor with 256 dictionaries.
-func NewReader(r io.Reader) io.Reader {
-	r, err := NewReaderWithSize(r, 256)
+func NewReader(r io.Reader) *Reader {
+	reader, err := NewReaderWithSize(r, 256)
 	if err != nil {
 		panic(err)
 	}
-	return r
+	return reader
 }
 
 // NewReaderWithSize is used to create a new decompressor with custom number of dictionaries.
-func NewReaderWithSize(r io.Reader, size int) (io.Reader, error) {
+func NewReaderWithSize(r io.Reader, size int) (*Reader, error) {
 	if size < 1 {
 		return nil, errors.New("dictionary size cannot less than 1")
 	}
