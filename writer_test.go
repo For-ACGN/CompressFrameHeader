@@ -279,6 +279,89 @@ func TestWriter_searchDictionary(t *testing.T) {
 	})
 }
 
+func TestWriter_RegisterSearcher(t *testing.T) {
+	t.Run("common", func(t *testing.T) {
+		output := bytes.NewBuffer(make([]byte, 0, 4096))
+
+		w := NewWriter(output)
+
+		searcher := func(dict [][]byte, header []byte) int {
+			var d []byte
+			for i := 0; i < len(dict); i++ {
+				d = dict[i]
+				if len(d) != len(header) {
+					continue
+				}
+				// src/dst GUID
+				if !bytes.Equal(d[:32], header[:32]) {
+					continue
+				}
+				return i
+			}
+			return -1
+		}
+		err := w.RegisterSearcher(64, searcher)
+		require.NoError(t, err)
+
+		frameHeaders := [][]byte{
+			bytes.Repeat([]byte{0}, 64),
+			bytes.Repeat([]byte{0}, 64),
+			bytes.Repeat([]byte{0}, 64),
+			bytes.Repeat([]byte{1}, 64),
+			bytes.Repeat([]byte{1}, 64),
+			bytes.Repeat([]byte{1}, 64),
+			bytes.Repeat([]byte{0}, 64),
+			bytes.Repeat([]byte{0}, 64),
+			bytes.Repeat([]byte{0}, 64),
+		}
+
+		for _, header := range frameHeaders {
+			n, err := w.Write(header)
+			require.NoError(t, err)
+			require.Equal(t, len(header), n)
+		}
+
+		r := NewReader(output)
+		for _, header := range frameHeaders {
+			buf := make([]byte, len(header))
+			n, err := r.Read(buf)
+			require.NoError(t, err)
+			require.Equal(t, len(header), n)
+			require.Equal(t, header, buf)
+		}
+	})
+
+	t.Run("already registered", func(t *testing.T) {
+		output := bytes.NewBuffer(make([]byte, 0, 4096))
+
+		w := NewWriter(output)
+
+		searcher := func(dict [][]byte, header []byte) int {
+			return -1
+		}
+
+		err := w.RegisterSearcher(64, searcher)
+		require.NoError(t, err)
+		err = w.RegisterSearcher(64, searcher)
+		require.EqualError(t, err, "searcher with size 64 is already registered")
+
+		for _, header := range testFrameHeaders {
+			n, err := w.Write(header)
+			require.NoError(t, err)
+			require.Equal(t, len(header), n)
+		}
+
+		r := NewReader(output)
+		for _, header := range testFrameHeaders {
+			buf := make([]byte, len(header))
+			n, err := r.Read(buf)
+			require.NoError(t, err)
+			require.Equal(t, len(header), n)
+			require.Equal(t, header, buf)
+		}
+	})
+}
+
 func TestWriter_Fuzz(t *testing.T) {
 	output := bytes.NewBuffer(make([]byte, 0, 4*1024*1024))
 	headers := testGenerateFrameHeaders(t)
