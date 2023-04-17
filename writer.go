@@ -3,12 +3,18 @@ package cfh
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 )
+
+// Searcher is used to fast search dictionaries for custom frame header.
+// dict is the Writer inner saved dictionaries.
+type Searcher = func(dict [][]byte, header []byte) (index int)
 
 // Writer is used to compress frame header data.
 type Writer struct {
 	w    io.Writer
+	ses  map[int]Searcher
 	dict [][]byte
 	last bytes.Buffer
 	chg  bytes.Buffer
@@ -118,6 +124,11 @@ func (w *Writer) write(b []byte) (int, error) {
 
 func (w *Writer) searchDictionary(data []byte) int {
 	size := len(data)
+	if w.ses != nil {
+		if searcher, ok := w.ses[size]; ok {
+			return searcher(w.dict, data)
+		}
+	}
 	switch {
 	case size == ethernetIPv4TCPSize:
 		return w.fastSearchDictEthernetIPv4TCP(data)
@@ -288,4 +299,18 @@ func (w *Writer) moveDictionary(idx int) {
 func (w *Writer) updateLast(data []byte) {
 	w.last.Reset()
 	w.last.Write(data)
+}
+
+// RegisterSearcher is used to register custom searcher
+// for fast search dictionaries with custom frame header.
+// Size is the target frame header size.
+func (w *Writer) RegisterSearcher(size int, searcher Searcher) error {
+	if w.ses == nil {
+		w.ses = make(map[int]Searcher, 1)
+	}
+	if _, ok := w.ses[size]; ok {
+		return fmt.Errorf("searcher with size %d is already registered", size)
+	}
+	w.ses[size] = searcher
+	return nil
 }
