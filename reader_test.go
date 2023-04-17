@@ -100,7 +100,7 @@ func TestReader_Read(t *testing.T) {
 
 		r := NewReader(output)
 
-		buf := make([]byte, 256)
+		buf := make([]byte, MaxFrameHeaderSize)
 		n, err := r.Read(buf)
 		require.EqualError(t, err, "failed to read decompress command: EOF")
 		require.Zero(t, n)
@@ -115,7 +115,7 @@ func TestReader_Read(t *testing.T) {
 
 		r := NewReader(output)
 
-		buf := make([]byte, 256)
+		buf := make([]byte, MaxFrameHeaderSize)
 		n, err := r.Read(buf)
 		require.EqualError(t, err, "failed to read decompress command: EOF")
 		require.Zero(t, n)
@@ -127,7 +127,7 @@ func TestReader_Read(t *testing.T) {
 
 		r := NewReader(output)
 
-		buf := make([]byte, 256)
+		buf := make([]byte, MaxFrameHeaderSize)
 		n, err := r.Read(buf)
 		require.EqualError(t, err, "invalid decompress command: 0")
 		require.Zero(t, n)
@@ -140,7 +140,7 @@ func TestReader_Read(t *testing.T) {
 
 			r := NewReader(output)
 
-			buf := make([]byte, 256)
+			buf := make([]byte, MaxFrameHeaderSize)
 			n, err := r.Read(buf)
 			require.EqualError(t, err, "failed to read dictionary size: EOF")
 			require.Zero(t, n)
@@ -153,7 +153,7 @@ func TestReader_Read(t *testing.T) {
 
 			r := NewReader(output)
 
-			buf := make([]byte, 256)
+			buf := make([]byte, MaxFrameHeaderSize)
 			n, err := r.Read(buf)
 			require.EqualError(t, err, "read empty dictionary")
 			require.Zero(t, n)
@@ -166,7 +166,7 @@ func TestReader_Read(t *testing.T) {
 
 			r := NewReader(output)
 
-			buf := make([]byte, 256)
+			buf := make([]byte, MaxFrameHeaderSize)
 			n, err := r.Read(buf)
 			require.EqualError(t, err, "failed to read dictionary data: EOF")
 			require.Zero(t, n)
@@ -180,7 +180,7 @@ func TestReader_Read(t *testing.T) {
 
 			r := NewReader(output)
 
-			buf := make([]byte, 256)
+			buf := make([]byte, MaxFrameHeaderSize)
 			n, err := r.Read(buf)
 			require.EqualError(t, err, "failed to read dictionary index: EOF")
 			require.Zero(t, n)
@@ -193,7 +193,7 @@ func TestReader_Read(t *testing.T) {
 
 			r := NewReader(output)
 
-			buf := make([]byte, 256)
+			buf := make([]byte, MaxFrameHeaderSize)
 			n, err := r.Read(buf)
 			require.EqualError(t, err, "read invalid dictionary index: 0")
 			require.Zero(t, n)
@@ -207,7 +207,7 @@ func TestReader_Read(t *testing.T) {
 			r := NewReader(output)
 			r.dict[0] = []byte{1, 2, 3, 4}
 
-			buf := make([]byte, 256)
+			buf := make([]byte, MaxFrameHeaderSize)
 			n, err := r.Read(buf)
 			require.EqualError(t, err, "failed to read the number of changed data: EOF")
 			require.Zero(t, n)
@@ -222,7 +222,7 @@ func TestReader_Read(t *testing.T) {
 			r := NewReader(output)
 			r.dict[0] = []byte{1, 2, 3, 4}
 
-			buf := make([]byte, 256)
+			buf := make([]byte, MaxFrameHeaderSize)
 			n, err := r.Read(buf)
 			require.EqualError(t, err, "read invalid changed data size: 5")
 			require.Zero(t, n)
@@ -237,7 +237,7 @@ func TestReader_Read(t *testing.T) {
 			r := NewReader(output)
 			r.dict[0] = []byte{1, 2, 3, 4}
 
-			buf := make([]byte, 256)
+			buf := make([]byte, MaxFrameHeaderSize)
 			n, err := r.Read(buf)
 			require.EqualError(t, err, "failed to read changed data: EOF")
 			require.Zero(t, n)
@@ -254,7 +254,7 @@ func TestReader_Read(t *testing.T) {
 			r := NewReader(output)
 			r.dict[0] = []byte{1, 2, 3, 4}
 
-			buf := make([]byte, 256)
+			buf := make([]byte, MaxFrameHeaderSize)
 			n, err := r.Read(buf)
 			require.EqualError(t, err, "invalid changed data index: 4")
 			require.Zero(t, n)
@@ -268,7 +268,7 @@ func TestReader_Read(t *testing.T) {
 
 			r := NewReader(output)
 
-			buf := make([]byte, 256)
+			buf := make([]byte, MaxFrameHeaderSize)
 			n, err := r.Read(buf)
 			require.EqualError(t, err, "failed to read dictionary index: EOF")
 			require.Zero(t, n)
@@ -281,7 +281,7 @@ func TestReader_Read(t *testing.T) {
 
 			r := NewReader(output)
 
-			buf := make([]byte, 256)
+			buf := make([]byte, MaxFrameHeaderSize)
 			n, err := r.Read(buf)
 			require.EqualError(t, err, "read invalid dictionary index: 0")
 			require.Zero(t, n)
@@ -292,7 +292,7 @@ func TestReader_Read(t *testing.T) {
 func TestReader_Fuzz(t *testing.T) {
 	data := make([]byte, 128)
 	reader := bytes.NewReader(data)
-	buf := make([]byte, 256)
+	buf := make([]byte, MaxFrameHeaderSize)
 	for i := 0; i < 128*1024; i++ {
 		_, err := rand.Read(data)
 		require.NoError(t, err)
