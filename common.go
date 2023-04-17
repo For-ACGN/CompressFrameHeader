@@ -4,7 +4,13 @@ import (
 	"encoding/binary"
 )
 
-const maxDataSize = 256
+const (
+	// MaxFrameHeaderSize is the maximum frame header.
+	MaxFrameHeaderSize = 256
+
+	// MaxDictionarySize is the maximum dictionary size.
+	MaxDictionarySize = 256
+)
 
 const (
 	cmdAddDict = 1 + iota

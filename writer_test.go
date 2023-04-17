@@ -31,7 +31,7 @@ func TestNewWriter(t *testing.T) {
 	t.Run("too large dictionary size", func(t *testing.T) {
 		output := bytes.NewBuffer(make([]byte, 0, 64))
 
-		w, err := NewWriterWithSize(output, 4096)
+		w, err := NewWriterWithSize(output, MaxDictionarySize+1)
 		require.EqualError(t, err, "dictionary size cannot greater than 256")
 		require.Nil(t, w)
 	})
@@ -119,7 +119,7 @@ func TestWriter_Write(t *testing.T) {
 	t.Run("write too large data", func(t *testing.T) {
 		w := NewWriter(output)
 
-		data := bytes.Repeat([]byte{0}, maxDataSize+1)
+		data := bytes.Repeat([]byte{0}, MaxFrameHeaderSize+1)
 		n, err := w.Write(data)
 		require.EqualError(t, err, "write too large data")
 		require.Zero(t, n)

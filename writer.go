@@ -25,7 +25,7 @@ type Writer struct {
 
 // NewWriter is used to create a new compressor with 256 dictionaries.
 func NewWriter(w io.Writer) *Writer {
-	writer, err := NewWriterWithSize(w, 256)
+	writer, err := NewWriterWithSize(w, MaxDictionarySize)
 	if err != nil {
 		panic(err)
 	}
@@ -37,7 +37,7 @@ func NewWriterWithSize(w io.Writer, size int) (*Writer, error) {
 	if size < 1 {
 		return nil, errors.New("dictionary size cannot less than 1")
 	}
-	if size > 256 {
+	if size > MaxDictionarySize {
 		return nil, errors.New("dictionary size cannot greater than 256")
 	}
 	return &Writer{
@@ -52,7 +52,7 @@ func (w *Writer) Write(b []byte) (int, error) {
 	if l < 1 {
 		return 0, nil
 	}
-	if l > maxDataSize {
+	if l > MaxFrameHeaderSize {
 		return 0, errors.New("write too large data")
 	}
 	if w.err != nil {
@@ -123,24 +123,24 @@ func (w *Writer) write(b []byte) (int, error) {
 	return n, nil
 }
 
-func (w *Writer) searchDictionary(data []byte) int {
-	size := len(data)
+func (w *Writer) searchDictionary(header []byte) int {
+	size := len(header)
 	if w.ses != nil {
 		if searcher, ok := w.ses[size]; ok {
-			return searcher(w.dict, data)
+			return searcher(w.dict, header)
 		}
 	}
 	switch {
 	case size == ethernetIPv4TCPSize:
-		return w.fastSearchDictEthernetIPv4TCP(data)
+		return w.fastSearchDictEthernetIPv4TCP(header)
 	case size == ethernetIPv4UDPSize:
-		return w.fastSearchDictEthernetIPv4UDP(data)
+		return w.fastSearchDictEthernetIPv4UDP(header)
 	case size == ethernetIPv6TCPSize:
-		return w.fastSearchDictEthernetIPv6TCP(data)
+		return w.fastSearchDictEthernetIPv6TCP(header)
 	case size == ethernetIPv6UDPSize:
-		return w.fastSearchDictEthernetIPv6UDP(data)
+		return w.fastSearchDictEthernetIPv6UDP(header)
 	default:
-		return w.slowSearchDict(data)
+		return w.slowSearchDict(header)
 	}
 }
 
@@ -236,25 +236,25 @@ func (w *Writer) fastSearchDictEthernetIPv6UDP(header []byte) int {
 	return -1
 }
 
-func (w *Writer) slowSearchDict(data []byte) int {
+func (w *Writer) slowSearchDict(header []byte) int {
 	var (
 		dict []byte
 		diff int
 	)
-	minDiff := len(data) / minDiffDiv
-	maxDiff := len(data) / maxDiffDiv
-	curDiff := maxDataSize
+	minDiff := len(header) / minDiffDiv
+	maxDiff := len(header) / maxDiffDiv
+	curDiff := MaxFrameHeaderSize
 	dictIdx := -1
 next:
 	for i := 0; i < len(w.dict); i++ {
 		dict = w.dict[i]
-		if len(dict) != len(data) {
+		if len(dict) != len(header) {
 			continue
 		}
 		// compare difference
 		diff = 0
 		for j := 0; j < len(dict); j++ {
-			if dict[j] == data[j] {
+			if dict[j] == header[j] {
 				continue
 			}
 			diff++

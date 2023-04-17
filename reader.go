@@ -21,7 +21,7 @@ type Reader struct {
 
 // NewReader is used to create a new compressor with 256 dictionaries.
 func NewReader(r io.Reader) *Reader {
-	reader, err := NewReaderWithSize(r, 256)
+	reader, err := NewReaderWithSize(r, MaxDictionarySize)
 	if err != nil {
 		panic(err)
 	}
@@ -33,7 +33,7 @@ func NewReaderWithSize(r io.Reader, size int) (*Reader, error) {
 	if size < 1 {
 		return nil, errors.New("dictionary size cannot less than 1")
 	}
-	if size > 256 {
+	if size > MaxDictionarySize {
 		return nil, errors.New("dictionary size cannot greater than 256")
 	}
 	return &Reader{
@@ -50,7 +50,7 @@ func (r *Reader) Read(b []byte) (int, error) {
 	if l < 1 {
 		return 0, nil
 	}
-	if l > maxDataSize {
+	if l > MaxFrameHeaderSize {
 		return 0, errors.New("read with too large buffer")
 	}
 	if r.err != nil {

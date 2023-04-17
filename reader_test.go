@@ -30,7 +30,7 @@ func TestNewReader(t *testing.T) {
 	t.Run("too large dictionary size", func(t *testing.T) {
 		output := bytes.NewBuffer(make([]byte, 0, 64))
 
-		r, err := NewReaderWithSize(output, 4096)
+		r, err := NewReaderWithSize(output, MaxDictionarySize+1)
 		require.EqualError(t, err, "dictionary size cannot greater than 256")
 		require.Nil(t, r)
 	})
